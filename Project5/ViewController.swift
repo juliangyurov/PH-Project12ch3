@@ -10,7 +10,7 @@ import UIKit
 class ViewController: UITableViewController {
     var allWords = [String]()
     var usedWords = [String]()
-
+    let defaults = UserDefaults.standard
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -26,11 +26,25 @@ class ViewController: UITableViewController {
         if allWords.isEmpty{
             allWords = ["silkworm"]
         }
-        startGame()
+        
+        
+        let savedTitle = defaults.string(forKey: "savedTitle") ?? ""
+        if savedTitle.isEmpty {
+            startGame()
+        }else{
+            title = savedTitle
+            if let savedUsedWords = defaults.object(forKey: "savedUsedWords") as? [String] {
+                usedWords = savedUsedWords
+            }
+            tableView.reloadData()
+        }
+        
     }
     @objc func startGame(){
         title = allWords.randomElement()
+        defaults.set(title, forKey: "savedTitle")
         usedWords.removeAll(keepingCapacity: true)
+        defaults.set(usedWords, forKey: "savedUsedWords")
         tableView.reloadData()
     }
     
@@ -69,6 +83,7 @@ class ViewController: UITableViewController {
                     if notStartingWith(word: lowerAnswer){
                         if isLong(word: lowerAnswer){
                             usedWords.insert(lowerAnswer, at: 0)
+                            defaults.set(usedWords, forKey: "savedUsedWords")
                             let indexPath = IndexPath(row: 0, section: 0)
                             tableView.insertRows(at: [indexPath], with: .automatic)
                             return
